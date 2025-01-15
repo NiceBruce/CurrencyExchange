@@ -27,10 +27,7 @@ public class CurrenciesDao {
             ResultSet rs = stmt.executeQuery();
             Currency currency = null;
             if (rs.next()) {
-                currency = new Currency(rs.getInt("id"),
-                        rs.getString("Code"),
-                        rs.getString("FullName"),
-                        rs.getString("Sign"));
+                currency = buildCurrency(rs);
             }
             return Optional.ofNullable(currency);
         } catch (SQLException e) {
@@ -45,12 +42,7 @@ public class CurrenciesDao {
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
             while(rs.next()) {
-                Currency currency = Currency.builder()
-                        .id(rs.getInt("id"))
-                        .code(rs.getString("Code"))
-                        .name(rs.getString("FullName"))
-                        .sign(rs.getString("Sign"))
-                                .build();
+                Currency currency = buildCurrency(rs);
                 currencies.add(currency);
             }
         } catch (SQLException e) {
@@ -100,5 +92,14 @@ public class CurrenciesDao {
         } catch (SQLException e) {
             throw new DataAccessException("Ошибка при работе с базой данных");
         }
+    }
+
+    private Currency buildCurrency(ResultSet rs) throws SQLException {
+        return Currency.builder()
+                .id(rs.getInt("id"))
+                .code(rs.getString("Code"))
+                .name(rs.getString("Name"))
+                .sign(rs.getString("Sign"))
+                .build();
     }
 }
