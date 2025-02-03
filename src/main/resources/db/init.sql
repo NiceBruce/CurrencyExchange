@@ -3,9 +3,9 @@ DROP TABLE IF EXISTS ExchangeRates;
 
 CREATE TABLE Currencies (
                             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Code Varchar NOT NULL,
-                            FullName Varchar NOT NULL,
-                            Sign Varchar NOT NULL
+                            Code Varchar NOT NULL UNIQUE,
+                            FullName Varchar NOT NULL UNIQUE,
+                            Sign Varchar NOT NULL UNIQUE
 );
 
 CREATE TABLE ExchangeRates (
@@ -14,7 +14,8 @@ CREATE TABLE ExchangeRates (
                             TargetCurrencyId INTEGER,
                             Rate Decimal(6) NOT NULL,
                             FOREIGN KEY(BaseCurrencyId) REFERENCES Currencies (ID),
-                            FOREIGN KEY(TargetCurrencyId) REFERENCES Currencies (ID)
+                            FOREIGN KEY(TargetCurrencyId) REFERENCES Currencies (ID),
+                            UNIQUE(BaseCurrencyId, TargetCurrencyId)
 );
 
 INSERT INTO currencies(Code, FullName, Sign)
