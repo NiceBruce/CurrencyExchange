@@ -100,13 +100,13 @@ public class CurrencyExhangeValidator {
         }
 
         if (!AVAILABLE_CURRENCIES_SIGN.contains(sign)) {
-            throw new InvalidDataException(String.format("Неправильный формат символа валюты: %s, " +
-                    "символ должен соответствовать стандарту ISO 4217", sign));
+            throw new InvalidDataException(String.format("Неправильный формат символа валюты: '%s'" +
+                    " - не соответствует ни одной существующей валюте!", sign));
         }
 
         if (!Currency.getInstance(code).getSymbol().equals(sign)) {
-            throw new InvalidDataException(String.format("Неправильный формат символа валюты: %s, " +
-                    "символ должен соответствовать переданному коду: %s в соответствии со стандартом ISO 4217", sign, code));
+            throw new InvalidDataException(String.format("Неправильный формат символа валюты: '%s', " +
+                    "символ должен соответствовать переданному коду: '%s'", sign, code));
         }
     }
 
