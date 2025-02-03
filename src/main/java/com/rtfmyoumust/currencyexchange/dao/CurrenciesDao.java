@@ -1,8 +1,11 @@
 package com.rtfmyoumust.currencyexchange.dao;
 
 import com.rtfmyoumust.currencyexchange.customexceptions.DataAccessException;
+import com.rtfmyoumust.currencyexchange.customexceptions.EntityIsExists;
 import com.rtfmyoumust.currencyexchange.entity.Currency;
 import lombok.SneakyThrows;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,18 +14,18 @@ import java.util.Optional;
 
 import static com.rtfmyoumust.currencyexchange.utils.DataBaseConnector.getConnection;
 
-
 public class CurrenciesDao {
+    public static final String GET_CURRENCY_BY_CODE = "SELECT * FROM currencies WHERE code = ?";
+    public static final String GET_ALL_CURRENCIES = "SELECT * FROM currencies";
+    public static final String SAVE_CURRENCY = "INSERT INTO Currencies(code, fullName, sign) VALUES(?,?,?)";
 
     private static final CurrenciesDao INSTANCE = new CurrenciesDao();
-
     public static CurrenciesDao getInstance() {
         return INSTANCE;
     }
 
-    public Optional<Currency> getCurrencyByCode(String code) throws DataAccessException {
-        String sql = "SELECT * FROM currencies WHERE code = ?";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public Optional<Currency> getCurrencyByCode(String code) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(GET_CURRENCY_BY_CODE)) {
             stmt.setString(1, code);
             ResultSet rs = stmt.executeQuery();
             Currency currency = null;
@@ -35,11 +38,9 @@ public class CurrenciesDao {
         }
     }
 
-    public List<Currency> getAllCurrencies() throws DataAccessException {
-        String sql = "SELECT * FROM currencies";
+    public List<Currency> getAllCurrencies() {
         List<Currency> currencies = new ArrayList<>();
-
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(GET_ALL_CURRENCIES)) {
             ResultSet rs = stmt.executeQuery();
             while(rs.next()) {
                 Currency currency = buildCurrency(rs);
@@ -53,8 +54,7 @@ public class CurrenciesDao {
 
     @SneakyThrows
     public Currency addCurrency(Currency currency) {
-        String sql = "INSERT INTO Currencies(code, fullName, sign) VALUES(?,?,?)";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(SAVE_CURRENCY)) {
             stmt.setString(1, currency.getCode());
             stmt.setString(2, currency.getName());
             stmt.setString(3, currency.getSign());
@@ -65,31 +65,14 @@ public class CurrenciesDao {
                 currency.setId(genetatedKeys.getInt(1));
             }
             return currency;
-
         } catch (SQLException e) {
-            throw new DataAccessException("Ошибка при работе с базой данных");
-        }
-    }
-
-    public void updateCurrency(int id, String code, String name, String symbol) throws DataAccessException {
-        String sql = "UPDATE currencies SET code = ?, name = ?, sign = ? WHERE id = ?";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, code);
-            stmt.setString(2, name);
-            stmt.setString(3, symbol);
-            stmt.setInt(4, id);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new DataAccessException("Ошибка при работе с базой данных");
-        }
-    }
-
-    public void deleteCurrency(int id) throws DataAccessException {
-        String sql = "DELETE FROM currencies WHERE id = ?";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
+            if (e instanceof SQLiteException) {
+                SQLiteException sqliteException = (SQLiteException) e;
+                if (sqliteException.getResultCode().code == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code) {
+                    throw new EntityIsExists(String.format("Валюта с кодом '%s, наименованием '%s' или знаком '%s' уже существует",
+                            currency.getCode(), currency.getName(), currency.getSign()));
+                }
+            }
             throw new DataAccessException("Ошибка при работе с базой данных");
         }
     }
@@ -98,7 +81,7 @@ public class CurrenciesDao {
         return Currency.builder()
                 .id(rs.getInt("id"))
                 .code(rs.getString("Code"))
-                .name(rs.getString("Name"))
+                .name(rs.getString("FullName"))
                 .sign(rs.getString("Sign"))
                 .build();
     }

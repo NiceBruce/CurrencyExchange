@@ -1,10 +1,12 @@
 package com.rtfmyoumust.currencyexchange.dao;
 
 import com.rtfmyoumust.currencyexchange.customexceptions.DataAccessException;
+import com.rtfmyoumust.currencyexchange.customexceptions.EntityIsExists;
 import com.rtfmyoumust.currencyexchange.entity.Currency;
 import com.rtfmyoumust.currencyexchange.entity.ExchangeRate;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,22 +19,22 @@ import static com.rtfmyoumust.currencyexchange.utils.DataBaseConnector.getConnec
 
 public class ExchangeRateDao {
 
-    public static final String FIND_ALL = "SELECT ExchangeRates.ID, b.id AS baseID, b.Code baseCode, b.FullName baseName, b.Sign AS baseSign,\n" +
+    private static final String FIND_ALL = "SELECT ExchangeRates.ID, b.id AS baseID, b.Code baseCode, b.FullName baseName, b.Sign AS baseSign,\n" +
             "t.id AS targetID, t.Code AS targetCode, t.FullName AS targetName, t.Sign AS targetSign," +
             "ExchangeRates.Rate FROM ExchangeRates\n" +
             "LEFT JOIN Currencies AS b ON ExchangeRates.BaseCurrencyId = b.ID\n" +
-            "LEFT JOIN Currencies AS t ON ExchangeRates.TargetCurrencyId = t.ID";
+            "LEFT JOIN Currencies AS t ON ExchangeRates.TargetCurrencyId = t.ID\n";
+    private static final String FIND_BY_CODE ="WHERE b.code LIKE ? AND t.code LIKE ?";
+    private static final String SAVE = "INSERT INTO ExchangeRates(BaseCurrencyId, TargetCurrencyId, rate) VALUES(?,?,?)";
+    private static final String UPDATE = "UPDATE ExchangeRates SET Rate=? WHERE id=?";
 
-    public static final String FIND_BY_CODE ="WHERE b.code LIKE ? AND t.code LIKE ?";
-    public static final String SAVE = "INSERT INTO ExchangeRates(BaseCurrencyId, TargetCurrencyId, rate) VALUES(?,?,?)";
-    public static final String UPDATE = "UPDATE ExchangeRates SET Rate=? WHERE id=?";
     private static final ExchangeRateDao INSTANCE = new ExchangeRateDao();
 
     public static ExchangeRateDao getInstance() {
         return INSTANCE;
     }
 
-    public Optional<ExchangeRate> getExchangeRateByCode(String baseCode, String targetCode) throws DataAccessException {
+    public Optional<ExchangeRate> getExchangeRateByCode(String baseCode, String targetCode) {
         ExchangeRate exchangeRate = null;
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_ALL + FIND_BY_CODE)) {
@@ -48,7 +50,7 @@ public class ExchangeRateDao {
         }
     }
 
-    public List<ExchangeRate> getAllExchangeRates() throws DataAccessException {
+    public List<ExchangeRate> getAllExchangeRates() {
         List<ExchangeRate> exchangeRates = new ArrayList<>();
 
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(FIND_ALL)) {
@@ -63,7 +65,7 @@ public class ExchangeRateDao {
         return exchangeRates;
     }
 
-    public ExchangeRate addExchangeRate(ExchangeRate exchangeRate) throws DataAccessException {
+    public ExchangeRate addExchangeRate(ExchangeRate exchangeRate) {
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(SAVE)) {
             stmt.setInt(1, exchangeRate.getBaseCurrency().getId());
             stmt.setInt(2, exchangeRate.getTargetCurrency().getId());
@@ -76,15 +78,27 @@ public class ExchangeRateDao {
             }
             return exchangeRate;
         } catch (SQLException e) {
+            if (e instanceof SQLiteException) {
+                SQLiteException sqliteException = (SQLiteException) e;
+                if (sqliteException.getResultCode().code == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code) {
+                    throw new EntityIsExists(String.format("Обменный курс с кодом: '%s' - уже существует",
+                            exchangeRate.getBaseCurrency().getCode() + exchangeRate.getTargetCurrency().getCode()));
+                }
+            }
             throw new DataAccessException("Ошибка при работе с базой данных");
         }
     }
 
-    public void updateExchangeRate(ExchangeRate exchangeRate, String newRate) throws DataAccessException {
+    public ExchangeRate updateExchangeRate(ExchangeRate exchangeRate) {
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(UPDATE)) {
-            stmt.setBigDecimal(1, new BigDecimal(newRate));
+            stmt.setBigDecimal(1, exchangeRate.getRate());
             stmt.setInt(2, exchangeRate.getId());
-            stmt.executeUpdate();
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated != 1) {
+                throw new DataAccessException(String.format("Ошибка обновления валютной пары: %s",
+                        exchangeRate.getBaseCurrency().getCode() + exchangeRate.getTargetCurrency().getCode()));
+            }
+            return exchangeRate;
         } catch (SQLException e) {
             throw new DataAccessException("Ошибка при работе с базой данных");
         }
