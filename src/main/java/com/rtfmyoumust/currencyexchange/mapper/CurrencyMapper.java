@@ -1,21 +1,21 @@
 package com.rtfmyoumust.currencyexchange.mapper;
 
-import com.rtfmyoumust.currencyexchange.dto.CreateCurrencyDto;
+import com.rtfmyoumust.currencyexchange.dto.CurrencyRequestDto;
 import com.rtfmyoumust.currencyexchange.entity.Currency;
 
-public class CreateCurrencyMapper implements Mapper<CreateCurrencyDto, Currency> {
+public class CurrencyMapper implements Mapper<CurrencyRequestDto, Currency> {
 
-    public static final CreateCurrencyMapper INSTANCE = new CreateCurrencyMapper();
+    public static final CurrencyMapper INSTANCE = new CurrencyMapper();
 
     @Override
-    public Currency mapFrom(CreateCurrencyDto fromDto) {
+    public Currency mapFrom(CurrencyRequestDto fromDto) {
         return Currency.builder()
                 .code(fromDto.getCode())
                 .name(fromDto.getName())
                 .sign(fromDto.getSign())
                 .build();
     }
-    public static CreateCurrencyMapper getInstance() {
+    public static CurrencyMapper getInstance() {
         return INSTANCE;
     }
 }
