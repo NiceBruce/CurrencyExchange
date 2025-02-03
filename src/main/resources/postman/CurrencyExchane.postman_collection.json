@@ -1,0 +1,259 @@
+{
+	"info": {
+		"_postman_id": "9255180b-92a7-4167-a4ee-e4cb5d055c7c",
+		"name": "CurrencyExchane",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8652444"
+	},
+	"item": [
+		{
+			"name": "currencies",
+			"item": [
+				{
+					"name": "CurrenciesDefaultRequest",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/currencies",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"currencies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CurrencyByCode",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/currency/TRY",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"currency",
+								"TRY"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CurrencyCreate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "code",
+									"value": "EUR",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "euro",
+									"type": "text"
+								},
+								{
+									"key": "sign",
+									"value": "€",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/currencies",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"currencies"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "exchangeRates",
+			"item": [
+				{
+					"name": "ExchangeRatesDefault",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exchangeRates",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exchangeRates"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ExchangeRateByCode",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exchangeRate/TRYKZT",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exchangeRate",
+								"TRYKZT"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ExchangeRateCreate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "code",
+								"value": "GBP",
+								"type": "text"
+							},
+							{
+								"key": "name",
+								"value": "Pound Sterling",
+								"type": "text"
+							},
+							{
+								"key": "sign",
+								"value": "&pound;",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseCurrencyCode",
+									"value": "TRY",
+									"type": "text"
+								},
+								{
+									"key": "targetCurrencyCode",
+									"value": "KZT",
+									"type": "text"
+								},
+								{
+									"key": "rate",
+									"value": "0.014",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exchangeRates",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exchangeRates"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ExchangeRateUpdateByCode",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "rate",
+									"value": "0.023456",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exchangeRate/TRYKZT",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exchangeRate",
+								"TRYKZT"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "exchange",
+			"item": [
+				{
+					"name": "ViewExchange",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exchange",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exchange"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
