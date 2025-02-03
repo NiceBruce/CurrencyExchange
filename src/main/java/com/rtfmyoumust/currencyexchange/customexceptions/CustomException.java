@@ -1,6 +1,6 @@
 package com.rtfmyoumust.currencyexchange.customexceptions;
 
-public abstract class CustomException extends Exception {
+public abstract class CustomException extends RuntimeException {
 
     public CustomException(String message) {
         super(message);

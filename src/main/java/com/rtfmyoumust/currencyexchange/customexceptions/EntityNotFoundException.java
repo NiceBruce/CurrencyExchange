@@ -8,10 +8,6 @@ public class EntityNotFoundException extends CustomException {
         super(message);
     }
 
-    public EntityNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     @Override
     public int getErrorCode() {
         return SC_NOT_FOUND;
