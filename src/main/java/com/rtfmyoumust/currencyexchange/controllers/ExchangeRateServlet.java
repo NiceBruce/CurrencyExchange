@@ -1,7 +1,7 @@
 package com.rtfmyoumust.currencyexchange.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rtfmyoumust.currencyexchange.common.ErrorResponse;
+import com.rtfmyoumust.currencyexchange.customexceptions.FieldNotFoundException;
 import com.rtfmyoumust.currencyexchange.dto.ExchangeRateRequestDto;
 import com.rtfmyoumust.currencyexchange.dto.ExchangeRateResponseDto;
 import com.rtfmyoumust.currencyexchange.service.ExchangeRateService;
@@ -32,12 +32,6 @@ public class ExchangeRateServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String code = request.getPathInfo().substring(1);
         ExchangeRateResponseDto exchangeRateDto;
-
-        if (code.isEmpty()){
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            ErrorResponse errorResponse = new ErrorResponse("Коды валют пары отсутствуют в адресе");
-            objectMapper.writeValue(response.getWriter(), errorResponse);
-        }
 
         exchangeRateDto = exchangeRateService.getExchangeRate(code.substring(0, 3), code.substring(3));
         response.setStatus(HttpServletResponse.SC_OK);
