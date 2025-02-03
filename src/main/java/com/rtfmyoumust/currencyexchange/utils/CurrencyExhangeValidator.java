@@ -69,6 +69,9 @@ public class CurrencyExhangeValidator {
     }
 
     public static void validateExchangeRateCode(String baseCurrencyCode, String targetCurrencyCode) {
+        if (baseCurrencyCode.isEmpty() || targetCurrencyCode.isEmpty()) {
+            new FieldNotFoundException("Коды валют пары отсутствуют в адресе");
+        }
         if (baseCurrencyCode.equals(targetCurrencyCode)) {
             throw new InvalidDataException("Валюты обмена должны отличаться друг от друга");
         }
