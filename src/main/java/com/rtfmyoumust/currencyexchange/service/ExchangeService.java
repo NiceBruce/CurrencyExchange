@@ -56,12 +56,16 @@ public class ExchangeService {
     private Optional<ExchangeRate> getReverseExchangeRate(ExchangeRequestDto exchangeRequestDto) {
         var swapExchangeRate = exchangeRateDao.getExchangeRateByCode(exchangeRequestDto.getTo(),
                 exchangeRequestDto.getFrom());
-        BigDecimal indirectRate = BigDecimal.ONE.divide(swapExchangeRate.get().getRate(), RATE_SCALE, RoundingMode.HALF_EVEN);
-        return Optional.ofNullable(ExchangeRate.builder()
-                .baseCurrency(swapExchangeRate.get().getTargetCurrency())
-                .targetCurrency(swapExchangeRate.get().getBaseCurrency())
-                .rate(indirectRate)
-                .build());
+        if (!swapExchangeRate.isPresent()) {
+            return swapExchangeRate;
+        } else {
+            BigDecimal indirectRate = BigDecimal.ONE.divide(swapExchangeRate.get().getRate(), RATE_SCALE, RoundingMode.HALF_EVEN);
+            return Optional.ofNullable(ExchangeRate.builder()
+                    .baseCurrency(swapExchangeRate.get().getTargetCurrency())
+                    .targetCurrency(swapExchangeRate.get().getBaseCurrency())
+                    .rate(indirectRate)
+                    .build());
+        }
     }
 
     private Optional<ExchangeRate>  getCrossExchangeRate(ExchangeRequestDto exchangeRequestDto) {
