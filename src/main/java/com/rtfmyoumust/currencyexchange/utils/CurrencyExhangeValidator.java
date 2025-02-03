@@ -2,7 +2,6 @@ package com.rtfmyoumust.currencyexchange.utils;
 
 import com.rtfmyoumust.currencyexchange.customexceptions.FieldNotFoundException;
 import com.rtfmyoumust.currencyexchange.customexceptions.InvalidDataException;
-import com.rtfmyoumust.currencyexchange.dao.CurrenciesDao;
 import com.rtfmyoumust.currencyexchange.dto.CurrencyRequestDto;
 import lombok.SneakyThrows;
 
@@ -13,7 +12,6 @@ import java.util.stream.Collectors;
 
 public class CurrencyExhangeValidator {
     public static final CurrencyExhangeValidator CURRENCY_VALIDATOR = new CurrencyExhangeValidator();
-    private static final CurrenciesDao currenciesDao = CurrenciesDao.getInstance();
     public static final Set<String> AVAILABLE_CURRENCIES_CODE = Currency.getAvailableCurrencies().stream()
             .map(Currency::getCurrencyCode).collect(Collectors.toSet());
     public static final Set<String> AVAILABLE_CURRENCIES_SIGN = Currency.getAvailableCurrencies().stream()
