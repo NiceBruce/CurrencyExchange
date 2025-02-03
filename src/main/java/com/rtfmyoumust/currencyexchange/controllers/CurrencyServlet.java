@@ -1,6 +1,7 @@
 package com.rtfmyoumust.currencyexchange.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rtfmyoumust.currencyexchange.customexceptions.FieldNotFoundException;
 import com.rtfmyoumust.currencyexchange.dto.CurrencyResponseDto;
 import com.rtfmyoumust.currencyexchange.service.CurrencyService;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,6 +19,9 @@ public class CurrencyServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String code = request.getPathInfo().substring(1);
+        if (code.isEmpty()){
+            throw new FieldNotFoundException("Код валюты отсутствует в адресе");
+        }
         CurrencyResponseDto currencyDTO = currencyService.getCurrencyByCode(code);
         objectMapper.writeValue(response.getWriter(), currencyDTO);
     }
