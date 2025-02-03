@@ -44,15 +44,18 @@ public class CurrencyExhangeValidator {
     }
 
     public static void validateRate(String rate) {
-        if (rate.contains(",")) {
-            throw new InvalidDataException("В качестве разделителя для Курс обмена должна использоваться '.' вместо ','");
-        }
         try {
             BigDecimal exchangeRate = new BigDecimal(rate);
             if (exchangeRate.signum() <= 0) {
                 throw new InvalidDataException("Курс обмена должен быть положительным числом");
             }
         } catch (NumberFormatException e) {
+            if (!rate.matches("\\d*")) {
+                throw new InvalidDataException("'Курс обмена' должен должен иметь числовой формат");
+            }
+            if (rate.contains(",")) {
+                throw new InvalidDataException("В качестве разделителя для 'курса обмена' должна использоваться '.' вместо ','");
+            }
             throw new FieldNotFoundException("Отсутствует нужное поле формы - 'Курс обмена'");
         }
     }
@@ -61,9 +64,15 @@ public class CurrencyExhangeValidator {
         try {
             BigDecimal exchangeRate = new BigDecimal(amount);
             if (exchangeRate.signum() <= 0) {
-                throw new InvalidDataException("Количество валюты должно быть положительным числом");
+                throw new InvalidDataException("'Количество валюты' должно быть положительным числом");
             }
         } catch (NumberFormatException e) {
+            if (!amount.matches("\\d*")) {
+                throw new InvalidDataException("'Количество валюты' должно иметь числовой формат");
+            }
+            if (amount.contains(",")) {
+                throw new InvalidDataException("В качестве разделителя для 'количества валюты' должна использоваться '.' вместо ','");
+            }
             throw new FieldNotFoundException("Отсутствует нужное поле формы - 'Количество валюты'");
         }
     }
