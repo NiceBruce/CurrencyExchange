@@ -1,77 +1,89 @@
 package com.rtfmyoumust.currencyexchange.service;
 
-import com.rtfmyoumust.currencyexchange.customexceptions.DataAccessException;
 import com.rtfmyoumust.currencyexchange.customexceptions.EntityNotFoundException;
-import com.rtfmyoumust.currencyexchange.customexceptions.ExchangeServiceException;
 import com.rtfmyoumust.currencyexchange.dao.CurrenciesDao;
 import com.rtfmyoumust.currencyexchange.dao.ExchangeRateDao;
-import com.rtfmyoumust.currencyexchange.dto.CreateExchangeDTO;
-import com.rtfmyoumust.currencyexchange.dto.ExchangeDto;
+import com.rtfmyoumust.currencyexchange.dto.ExchangeRequestDto;
+import com.rtfmyoumust.currencyexchange.dto.ExchangeResponseDto;
 import com.rtfmyoumust.currencyexchange.entity.ExchangeRate;
+import com.rtfmyoumust.currencyexchange.mapper.CurrencyToDtoMapper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Optional;
+
+import static com.rtfmyoumust.currencyexchange.utils.CurrencyExhangeValidator.validateAmount;
+import static com.rtfmyoumust.currencyexchange.utils.CurrencyExhangeValidator.validateExchangeRateCode;
 
 public class ExchangeService {
     public static final String USD_CODE = "USD";
+    public static final int RATE_SCALE = 5;
+    public static final int AMOUNT_SCALE = 2;
     public static final ExchangeService INSTANCE = new ExchangeService();
     private final ExchangeRateDao exchangeRateDao = ExchangeRateDao.getInstance();
     private final CurrenciesDao currenciesDao = CurrenciesDao.getInstance();
+    private final CurrencyToDtoMapper currencyToDtoMapper = CurrencyToDtoMapper.getInstance();
 
-    public ExchangeDto getExchange(CreateExchangeDTO createExchangeDTO) throws DataAccessException, ExchangeServiceException, EntityNotFoundException {
-
-        ExchangeDto exchangeDto = null;
-        BigDecimal amount = new BigDecimal(createExchangeDTO.getAmount());
-
-        var currencyFrom = currenciesDao.getCurrencyByCode(createExchangeDTO.getFrom())
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Валюта с кодом: %s не найдена", createExchangeDTO.getFrom())));
-        var currencyTo = currenciesDao.getCurrencyByCode(createExchangeDTO.getTo())
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Валюта с кодом: %s не найдена", createExchangeDTO.getTo())));
-
-        var exchangeRate = exchangeRateDao.getExchangeRateByCode(createExchangeDTO.getFrom(),
-                createExchangeDTO.getTo());
-        var swapExchangeRate = exchangeRateDao.getExchangeRateByCode(createExchangeDTO.getTo(),
-                createExchangeDTO.getFrom());
-
-        if (exchangeRate.isPresent()) {
-            ExchangeRate exchange = exchangeRate.get();
-            exchangeDto = getExchangeDto(exchange, amount, exchange.getRate().multiply(amount));
-        } else if (swapExchangeRate.isPresent()) {
-            ExchangeRate exchange = swapExchangeRate.get();
-            exchange = ExchangeRate.builder()
-                    .baseCurrency(exchange.getTargetCurrency())
-                    .targetCurrency(exchange.getBaseCurrency())
-                    .rate(exchange.getRate())
-                    .build();
-            exchangeDto = getExchangeDto(exchange, amount,
-                    amount.divide(exchange.getRate(), 5, RoundingMode.CEILING));
-        } else {
-            var usdToBaseCurrency = exchangeRateDao.getExchangeRateByCode(USD_CODE, createExchangeDTO.getFrom())
-                    .orElseThrow(() -> new EntityNotFoundException(String.format("Обменный курс для пары: %s не найден", USD_CODE + createExchangeDTO.getFrom())));
-            var usdToTargetCurrency = exchangeRateDao.getExchangeRateByCode(USD_CODE, createExchangeDTO.getTo())
-                    .orElseThrow(() -> new EntityNotFoundException(String.format("Обменный курс для пары: %s не найден", USD_CODE + createExchangeDTO.getTo())));
-            BigDecimal rateBasedOnUsdt = usdToTargetCurrency.getRate().divide(usdToBaseCurrency.getRate(), 5, RoundingMode.CEILING);
-            ExchangeRate exchangeRateBasedOnUsdt = ExchangeRate.builder()
-                    .baseCurrency(currencyFrom)
-                    .targetCurrency(currencyTo)
-                    .rate(rateBasedOnUsdt)
-                    .build();
-            exchangeDto = getExchangeDto(exchangeRateBasedOnUsdt, amount, rateBasedOnUsdt.multiply(amount));
-        }
-        return exchangeDto;
+    public static ExchangeService getInstance() {
+        return INSTANCE;
     }
 
-    private ExchangeDto getExchangeDto(ExchangeRate exchangeRate, BigDecimal amount, BigDecimal convertedAmount) {
-        return ExchangeDto.builder()
-                .baseCurrency(exchangeRate.getBaseCurrency())
-                .targetCurrency(exchangeRate.getTargetCurrency())
+    public ExchangeResponseDto getExchange(ExchangeRequestDto exchangeRequestDto) {
+        validateAmount(exchangeRequestDto.getAmount());
+        validateExchangeRateCode(exchangeRequestDto.getFrom(), exchangeRequestDto.getTo());
+        BigDecimal amount = new BigDecimal(exchangeRequestDto.getAmount());
+
+        var exchangeRate = exchangeRateDao.getExchangeRateByCode(exchangeRequestDto.getFrom(),
+                exchangeRequestDto.getTo());
+
+        ExchangeRate exchange = exchangeRate.or(() -> getReverseExchangeRate(exchangeRequestDto))
+                .orElseGet(() -> getCrossExchangeRate(exchangeRequestDto).get());
+
+        BigDecimal convertedAmount = exchange.getRate().multiply(amount).setScale(AMOUNT_SCALE, RoundingMode.HALF_EVEN);
+        return getExchangeDto(exchange, amount, convertedAmount);
+    }
+
+    private ExchangeResponseDto getExchangeDto(ExchangeRate exchangeRate, BigDecimal amount, BigDecimal convertedAmount) {
+        return ExchangeResponseDto.builder()
+                .baseCurrency(currencyToDtoMapper.mapFrom(exchangeRate.getBaseCurrency()))
+                .targetCurrency(currencyToDtoMapper.mapFrom(exchangeRate.getTargetCurrency()))
                 .rate(exchangeRate.getRate())
                 .amount(amount)
                 .convertedAmount(convertedAmount)
                 .build();
     }
 
-    public static ExchangeService getInstance() {
-        return INSTANCE;
+    private Optional<ExchangeRate> getReverseExchangeRate(ExchangeRequestDto exchangeRequestDto) {
+        var swapExchangeRate = exchangeRateDao.getExchangeRateByCode(exchangeRequestDto.getTo(),
+                exchangeRequestDto.getFrom());
+        BigDecimal indirectRate = BigDecimal.ONE.divide(swapExchangeRate.get().getRate(), RATE_SCALE, RoundingMode.HALF_EVEN);
+        return Optional.ofNullable(ExchangeRate.builder()
+                .baseCurrency(swapExchangeRate.get().getTargetCurrency())
+                .targetCurrency(swapExchangeRate.get().getBaseCurrency())
+                .rate(indirectRate)
+                .build());
+    }
+
+    private Optional<ExchangeRate>  getCrossExchangeRate(ExchangeRequestDto exchangeRequestDto) {
+        var currencyFrom = currenciesDao.getCurrencyByCode(exchangeRequestDto.getFrom())
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Валюта с кодом: %s не найдена",
+                        exchangeRequestDto.getFrom())));
+        var currencyTo = currenciesDao.getCurrencyByCode(exchangeRequestDto.getTo())
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Валюта с кодом: %s не найдена",
+                        exchangeRequestDto.getTo())));
+
+        var usdToBaseCurrency = exchangeRateDao.getExchangeRateByCode(USD_CODE, exchangeRequestDto.getFrom())
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Обменный курс для пары: %s не найден",
+                        USD_CODE + exchangeRequestDto.getFrom())));
+        var usdToTargetCurrency = exchangeRateDao.getExchangeRateByCode(USD_CODE, exchangeRequestDto.getTo())
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Обменный курс для пары: %s не найден",
+                        USD_CODE + exchangeRequestDto.getTo())));
+
+        BigDecimal rateBasedOnUsdt = usdToTargetCurrency.getRate().divide(usdToBaseCurrency.getRate(), RATE_SCALE, RoundingMode.CEILING);
+        return Optional.ofNullable(ExchangeRate.builder()
+                .baseCurrency(currencyFrom)
+                .targetCurrency(currencyTo)
+                .rate(rateBasedOnUsdt)
+                .build());
     }
 }
