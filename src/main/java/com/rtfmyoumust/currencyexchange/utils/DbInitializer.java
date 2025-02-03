@@ -12,7 +12,7 @@ public class DbInitializer {
         String sqlFilePath = "src/main/resources/db/init.sql";
 
         try (Connection connection = DriverManager.getConnection(dbURl)) {
-            System.out.println("Connected to database");
+            System.out.println("Connected to the database");
             StringBuilder sqlScript = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new FileReader(sqlFilePath))) {
                 String line;
@@ -29,6 +29,5 @@ public class DbInitializer {
             e.getMessage();
             e.printStackTrace();
         }
-
     }
 }
