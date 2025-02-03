@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CURRENCY EXCHANGE REST API Documentation</title>
+  <style>
+      .header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+      }
+
+    body {
+      font-family: sans-serif;
+      line-height: 1.6;
+      margin: 20px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 600;
+    }
+      h1 {
+          font-size: 1.5em;
+          margin-left: 100px;
+      }
+
+    h2 {
+      font-size: 1.5em;
+      margin-top: 20px;
+    }
+
+    h3 {
+      font-size: 1.2em;
+      margin-top: 15px;
+    }
+
+      .grey-block {
+          background-color: #dcdcdc;
+          padding: 10px;
+          border-radius: 10px;
+          margin-bottom: 10px;
+      }
+
+    code {
+      font-family: monospace;
+      background-color: #f4f4f4;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    pre {
+      font-family: monospace;
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    .request-example {
+      margin-top: 10px;
+    }
+
+    .response-example {
+      margin-top: 10px;
+    }
+
+    .button-back {
+        padding: 10px 20px;
+        position: absolute;
+        background-color: #4CAF50; /* Зеленый цвет */
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    .button-response {
+        padding: 10px 20px;
+        background-color: #555a5a; /* Зеленый цвет */
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    .button-back:hover {
+        background-color: #007500;
+    }
+    .button-response:hover {
+        background-color: #020202;
+    }
+  </style>
+</head>
+
+<body>
+<div class="header">
+    <h1>CURRENCY EXCHANGE REST API Documentation</h1>
+    <button class ="button-back" onclick="goBack()">Назад</button>
+</div>
+
+
+<p>Методы REST API реализуют CRUD интерфейс над базой данных - позволяют создавать (C - create), читать (R - read), редактировать (U - update). В целях упрощения, опустим удаление (D - delete).</p>
+
+<h2>Валюты</h2>
+
+<div class="grey-block">
+<h3><code>GET /currencies</code></h3>
+<p>Получение списка валют. Пример запроса:</p>
+<div class="request-example">
+  <pre><code>GET /currencies</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('currenciesResponse')">Показать пример ответа</button>
+<div class="response-example" id="currenciesResponse" style="display: none;">
+        <pre><code>[
+    {
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
+    },
+    {
+        "id": 0,
+        "name": "Euro",
+        "code": "EUR",
+        "sign": "€"
+    }
+]</code></pre>
+</div>
+<p>HTTP коды ответов:</p>
+<ul>
+  <li>Успех - <code>200</code></li>
+  <li>Ошибка (например, база данных недоступна) - <code>500</code></li>
+</ul>
+</div>
+
+<div class="grey-block">
+<h3><code>GET /currency/EUR</code></h3>
+<p>Получение конкретной валюты. Пример запроса:</p>
+<div class="request-example">
+  <pre><code>GET /currency/EUR</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('currencyResponse')">Показать пример ответа</button>
+<div class="response-example" id="currencyResponse" style="display: none;">
+        <pre><code>{
+    "id": 0,
+    "name": "Euro",
+    "code": "EUR",
+    "sign": "€"
+}</code></pre>
+</div>
+<p>HTTP коды ответов:</p>
+<ul>
+  <li>Успех - <code>200</code></li>
+  <li>Код валюты отсутствует в адресе - <code>400</code></li>
+  <li>Валюта не найдена - <code>404</code></li>
+  <li>Ошибка (например, база данных недоступна) - <code>500</code></li>
+</ul>
+</div>
+
+<div class="grey-block">
+<h3><code>POST /currencies</code></h3>
+<p>Добавление новой валюты в базу. Данные передаются в теле запроса в виде полей формы (<code>x-www-form-urlencoded</code>). Поля формы - <code>name</code>, <code>code</code>, <code>sign</code>. Пример ответа - JSON представление вставленной в базу записи, включая её ID:</p>
+<div class="request-example">
+    <pre><code>POST /currencies</code></pre>
+    <p><strong>Form data:</strong></p>
+    <pre><code>name: Euro
+code: EUR
+sign: €</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('currenciesPostResponse')">Показать пример ответа</button>
+<div class="response-example" id="currenciesPostResponse" style="display: none;">
+        <pre><code>{
+    "id": 0,
+    "name": "Euro",
+    "code": "EUR",
+    "sign": "€"
+}</code></pre>
+</div>
+<p>HTTP коды ответов:</p>
+<ul>
+    <li>Успех - <code>201</code></li>
+    <li>Отсутствует нужное поле формы - <code>400</code></li>
+    <li>Валюта с таким кодом уже существует - <code>409</code></li>
+    <li>Ошибка (например, база данных недоступна) - <code>500</code></li>
+</ul>
+</div>
+
+<h2>Обменные курсы</h2>
+
+<div class="grey-block">
+<h3><code>GET /exchangeRates</code></h3>
+<p>Получение списка всех обменных курсов. Пример запроса:</p>
+<div class="request-example">
+    <pre><code>GET /exchangeRates</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('exchangeRatesResponse')">Показать пример ответа</button>
+<div class="response-example" id="exchangeRatesResponse" style="display: none;">
+        <pre><code>[
+    {
+        "id": 0,
+        "baseCurrency": {
+            "id": 0,
+            "name": "United States dollar",
+            "code": "USD",
+            "sign": "$"
+        },
+        "targetCurrency": {
+            "id": 1,
+            "name": "Euro",
+            "code": "EUR",
+            "sign": "€"
+        },
+        "rate": 0.99
+    }
+]</code></pre>
+</div>
+<p>HTTP коды ответов:</p>
+<ul>
+    <li>Успех - <code>200</code></li>
+    <li>Ошибка (например, база данных недоступна) - <code>500</code></li>
+</ul>
+</div>
+
+<div class="grey-block">
+<h3><code>GET /exchangeRate/USDRUB</code></h3>
+<p>Получение конкретного обменного курса. Валютная пара задаётся идущими подряд кодами валют в адресе запроса. Пример запроса:</p>
+<div class="request-example">
+    <pre><code>GET /exchangeRate/USDRUB</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('exchangeRateResponse')">Показать пример ответа</button>
+<div class="response-example" id="exchangeRateResponse" style="display: none;">
+        <pre><code>{
+    "id": 0,
+    "baseCurrency": {
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
+    },
+    "targetCurrency": {
+        "id": 2,
+        "name": "Russian Ruble",
+        "code": "RUB",
+        "sign": "₽"
+    },
+    "rate": 80
+}</code></pre>
+</div>
+<p>HTTP коды ответов:</p>
+<ul>
+    <li>Успех - <code>200</code></li>
+    <li>Код валюты отсутствует в адресе - <code>400</code></li>
+    <li>Валюта не найдена - <code>404</code></li>
+    <li>Ошибка (например, база данных недоступна) - <code>500</code></li>
+</ul>
+</div>
+
+<div class="grey-block">
+<h3><code>POST /exchangeRates</code></h3>
+<p>Добавление нового обменного курса в базу. Данные передаются в теле запроса в виде полей формы (<code>x-www-form-urlencoded</code>). Поля формы - <code>baseCurrencyCode</code>, <code>targetCurrencyCode</code>, <code>rate</code>. Пример полей формы:</p>
+<pre><code>baseCurrencyCode - USD
+targetCurrencyCode - EUR
+rate - 0.99</code></pre>
+<p>Пример ответа - JSON представление вставленной в базу записи, включая её ID:</p>
+<div class="request-example">
+    <pre><code>POST /exchangeRates</code></pre>
+    <p><strong>Form data:</strong></p>
+    <pre><code>baseCurrencyCode: USD
+targetCurrencyCode: EUR
+rate: 0.99</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('exchangeRatePostResponse')">Показать пример ответа</button>
+<div class="response-example" id="exchangeRatePostResponse" style="display: none;">
+        <pre><code>{
+    "id": 0,
+    "baseCurrency": {
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
+    },
+    "targetCurrency": {
+        "id": 1,
+        "name": "Euro",
+        "code": "EUR",
+        "sign": "€"
+    },
+    "rate": 0.99
+}</code></pre>
+</div>
+<p>HTTP коды ответов:</p>
+<ul>
+    <li>Успех - <code>201</code></li>
+    <li>Отсутствует нужное поле формы - <code>400</code></li>
+    <li>Валютная пара с таким кодом уже существует - <code>409</code></li>
+    <li>Одна (или обе) валюта из валютной пары не существует в БД - <code>404</code></li>
+    <li>Ошибка (например, база данных недоступна) - <code>500</code></li>
+</ul>
+</div>
+
+<div class="grey-block">
+<h3><code>PATCH /exchangeRate/USDRUB</code></h3>
+<p>Обновление существующего в базе обменного курса. Валютная пара задаётся идущими подряд кодами валют в адресе запроса. Данные передаются в теле запроса в виде полей формы (<code>x-www-form-urlencoded</code>). Единственное поле формы - <code>rate</code>.</p>
+<p>Пример ответа - JSON представление обновлённой записи в базе данных, включая её ID:</p>
+<div class="request-example">
+    <pre><code>PATCH /exchangeRate/USDRUB</code></pre>
+    <p><strong>Form data:</strong></p>
+    <pre><code>rate: 80</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('exchangeRatePatchResponse')">Показать пример ответа</button>
+<div class="response-example" id="exchangeRatePatchResponse" style="display: none;">
+        <pre><code>{
+    "id": 0,
+    "baseCurrency": {
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
+    },
+    "targetCurrency": {
+        "id": 2,
+        "name": "Russian Ruble",
+        "code": "RUB",
+        "sign": "₽"
+    },
+    "rate": 80
+}</code></pre>
+</div>
+<p>HTTP коды ответов:</p>
+<ul>
+    <li>Успех - <code>200</code></li>
+    <li>Отсутствует нужное поле формы - <code>400</code></li>
+    <li>Валютная пара отсутствует в базе данных - <code>404</code></li>
+    <li>Ошибка (например, база данных недоступна) - <code>500</code></li>
+</ul>
+</div>
+
+<h2>Обмен валюты</h2>
+
+<div class="grey-block">
+<h3><code>GET /exchange?from=BASE_CURRENCY_CODE&to=TARGET_CURRENCY_CODE&amount=$AMOUNT</code></h3>
+<p>Расчёт перевода определённого количества средств из одной валюты в другую. Пример запроса - <code>GET /exchange?from=USD&to=AUD&amount=10</code>.</p>
+<div class="request-example">
+    <pre><code>GET /exchange?from=USD&to=AUD&amount=10</code></pre>
+</div>
+<button class="button-response" onclick="showResponse('exchangeResponse')">Показать пример ответа</button>
+<div class="response-example" id="exchangeResponse" style="display: none;">
+        <pre><code>{
+    "baseCurrency": {
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
+    },
+    "targetCurrency": {
+        "id": 1,
+        "name": "Australian dollar",
+        "code": "AUD",
+        "sign": "A$"
+    },
+    "rate": 1.45,
+    "amount": 10.00,
+    "convertedAmount": 14.50
+}</code></pre>
+</div>
+<p>Получение курса для обмена может пройти по одному из трёх сценариев. Допустим, совершаем перевод из валюты <code>A</code> в валюту <code>B</code>:</p>
+<ul>
+    <li>В таблице <code>ExchangeRates</code> существует валютная пара <code>AB</code> - берём её курс</li>
+    <li>В таблице <code>ExchangeRates</code> существует валютная пара <code>BA</code> - берем её курс, и считаем обратный, чтобы получить <code>AB</code></li>
+    <li>В таблице <code>ExchangeRates</code> существуют валютные пары <code>USD-A</code> и <code>USD-B</code> - вычисляем из этих курсов курс <code>AB</code></li>
+</ul>
+<p>Остальные возможные сценарии, для упрощения, опустим.</p>
+</div>
+
+<div class="grey-block">
+<h3>Ответ в случае ошибки</h3>
+<p>Для всех запросов, в случае ошибки, ответ должен выглядеть так:</p>
+<div class="response-example">
+        <pre><code>{
+    "message": "Валюта не найдена"
+}</code></pre>
+</div>
+<p>Значение <code>message</code> зависит от того, какая именно ошибка произошла.</p>
+</div>
+
+<script>
+  function showResponse(id) {
+    var response = document.getElementById(id);
+    if (response.style.display === "none") {
+      response.style.display = "block";
+    } else {
+      response.style.display = "none";
+    }
+  }
+
+  function goBack() {
+      window.location.href = "http://rtfmyoumust.ru/currency_exchange/";
+  }
+</script>
+
+</body>
+
+</html>
