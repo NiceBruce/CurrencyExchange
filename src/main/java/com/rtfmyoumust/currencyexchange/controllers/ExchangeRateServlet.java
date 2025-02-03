@@ -32,7 +32,9 @@ public class ExchangeRateServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String code = request.getPathInfo().substring(1);
         ExchangeRateResponseDto exchangeRateDto;
-
+        if (code.isEmpty()){
+            throw new FieldNotFoundException("Коды валют пары отсутствуют в адресе");
+        }
         exchangeRateDto = exchangeRateService.getExchangeRate(code.substring(0, 3), code.substring(3));
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(), exchangeRateDto);
