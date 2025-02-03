@@ -7,10 +7,6 @@ public class EntityIsExists extends CustomException {
         super(message);
     }
 
-    public EntityIsExists(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     @Override
     public int getErrorCode() {
         return SC_CONFLICT;
