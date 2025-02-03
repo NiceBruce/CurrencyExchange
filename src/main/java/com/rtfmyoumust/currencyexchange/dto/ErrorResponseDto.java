@@ -5,8 +5,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class CreateExchangeDTO {
-    String from;
-    String to;
-    String amount;
+public class ErrorResponseDto {
+    int error;
+    String message;
 }

@@ -5,7 +5,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class CreateExchangeRateDto {
+public class ExchangeRateRequestDto {
     String baseCurrencyCode;
     String targetCurrencyCode;
     String rate;
