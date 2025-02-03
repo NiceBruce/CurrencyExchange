@@ -4,7 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/bootstrap.css" />
+    <link href="favicon.ico" rel="icon" type="image/x-icon">
     <title>Currency Exchange Service</title>
+    <style>
+        hr {
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+
+        .itunes-shadow {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .white-link {
+            color: #686363;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -159,20 +181,23 @@
         </div>
     </section>
 
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div id="api-error-toast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="position-fixed bottom-0 end-0 p-3 border-2 border-danger" style="z-index: 11">
+        <div id="api-error-toast" class="toast hide border-2 border-danger" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <strong class="me-auto">Error</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
 
             </div>
-            <div class="toast-body">
+            <div class="toast-body border-2 border-danger">
 
             </div>
         </div>
     </div>
 </div>
-
+<hr>
+<footer>
+    <a href="http://rtfmyoumust.ru/currency_exchange/rest_api_documentation.html" class="itunes-shadow white-link">CURRENCY EXCHANGE REST API Documentation</a>
+</footer>
 <script src="js/jquery-3.6.3.min.js"></script>
 <script src="js/bootstrap.js"></script>
 <script src="js/app.js"></script>
